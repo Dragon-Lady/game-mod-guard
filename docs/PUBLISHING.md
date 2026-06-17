@@ -13,7 +13,7 @@ This avoids storing a PyPI API token in the repo.
 3. Add a trusted publisher for this GitHub repository:
    - Owner: `Dragon-Lady`
    - Repository: `game-mod-guard`
-   - Workflow: `publish-pypi.yml`
+   - Workflow: `publish.yml`
    - Environment: leave blank unless the workflow is changed to use one
 
 ## Release
