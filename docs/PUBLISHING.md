@@ -14,14 +14,15 @@ This avoids storing a PyPI API token in the repo.
    - Owner: `Dragon-Lady`
    - Repository: `game-mod-guard`
    - Workflow: `publish-pypi.yml`
-   - Environment: `pypi`
+   - Environment: leave blank unless the workflow is changed to use one
 
 ## Release
 
 1. Bump the version in `pyproject.toml` and `game_mod_guard.py`.
 2. Run tests.
 3. Commit and push.
-4. Create a GitHub Release with a tag like `v0.1.1`.
+4. Create a GitHub Release with a tag matching the package version, such as
+   `v0.1.1`.
 5. GitHub Actions builds and publishes to PyPI.
 
 ## Brayden Install / Upgrade
@@ -49,4 +50,3 @@ If the `game-mod-guard` command is on PATH, this also works:
 ```powershell
 game-mod-guard "C:\Users\you\Downloads\some-mod.zip"
 ```
-

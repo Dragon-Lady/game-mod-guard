@@ -1,5 +1,8 @@
 name: tests
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 on:
   push:
     branches: [main]
@@ -18,4 +21,3 @@ jobs:
         run: python -m py_compile game_mod_guard.py tests/test_game_mod_guard.py
       - name: Unit tests
         run: python -m unittest discover -s tests -v
-

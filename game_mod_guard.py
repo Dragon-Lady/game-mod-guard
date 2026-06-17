@@ -22,7 +22,7 @@ from pathlib import Path
 from typing import Iterable
 
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 ARCHIVE_EXTENSIONS = {".zip", ".scs"}
 NESTED_ARCHIVE_EXTENSIONS = {
