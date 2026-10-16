@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "game-mod-guard"
-version = "0.1.3"
+version = "0.1.4"
 description = "Read-only safety checker for downloaded game mods and mod archives."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -42,6 +42,9 @@ classifiers = [
 Homepage = "https://github.com/Dragon-Lady/game-mod-guard"
 Repository = "https://github.com/Dragon-Lady/game-mod-guard"
 Issues = "https://github.com/Dragon-Lady/game-mod-guard/issues"
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<10"]
 
 [project.scripts]
 game-mod-guard = "game_mod_guard:main"
