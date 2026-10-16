@@ -61,7 +61,7 @@ If it says `REVIEW`, ask a technical friend to check it before installing.
 If it says `STOP`, do not install it. Delete that downloaded mod and get the mod
 from a safer source.
 
-## Brayden / Computer Friend Setup
+## Computer Friend Setup
 
 If you are comfortable with Python packages, install from PyPI:
 
@@ -117,6 +117,17 @@ python3 game_mod_guard.py ~/Downloads/mod.zip --json report.json
 
 ## How To Read Results
 
+Report output creates a new file exclusively (0600 permissions on POSIX).
+Existing files and links are refused, including aliases of scanned inputs.
+A failed write returns 1 and may leave a partial new report; it is not a
+successful scan receipt.
+
+Exit codes are 0 for `SAFE-LOOKING`, 1 for `REVIEW` or report-write errors, and
+2 for `STOP` (also argparse usage errors). Unlistable directories, unreadable
+explicit files and unsupported target types require review, never a clean
+result. Directory inspection classifies file names/metadata; it does not read
+every file's contents or recursively inspect archives inside that directory.
+
 `SAFE-LOOKING` means Game Mod Guard did not find its known local warning signs.
 It is not a guarantee. Prefer official sources like GIANTS ModHub, Steam
 Workshop, and trusted mod communities.
@@ -138,7 +149,7 @@ If `scan-mod.bat` says Python is missing:
 3. Install the newest Python 3 version.
 4. Try dragging the mod onto `scan-mod.bat` again.
 
-Brayden/computer-friend route: install Python from <https://www.python.org/downloads/>
+Computer-friend route: install Python from <https://www.python.org/downloads/>
 and enable **Add python.exe to PATH** during install.
 
 ## Good Habits

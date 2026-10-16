@@ -200,7 +200,13 @@ def inspect_regular_file(path: Path, report: TargetReport) -> None:
 
 
 def inspect_directory(path: Path, report: TargetReport) -> None:
-    for root, dirs, files in os.walk(path):
+    def on_error(error: OSError) -> None:
+        report.findings.append(
+            Finding("REVIEW", str(error.filename or path), "directory inspection incomplete",
+                    "Could not list or inspect this path.")
+        )
+
+    for root, dirs, files in os.walk(path, onerror=on_error):
         dirs[:] = [d for d in dirs if d not in {".git", "__pycache__"}]
         for filename in files:
             file_path = Path(root) / filename
@@ -210,7 +216,11 @@ def inspect_directory(path: Path, report: TargetReport) -> None:
                 try:
                     size = file_path.stat().st_size
                 except OSError:
-                    size = 0
+                    report.findings.append(
+                        Finding("REVIEW", rel, "file inspection incomplete", "Could not read file metadata.")
+                    )
+                    report.findings.append(Finding(severity, rel, issue))
+                    continue
                 report.findings.append(Finding(severity, rel, issue, f"{size} bytes"))
 
 
@@ -283,15 +293,22 @@ def scan_target(path: Path, defender: bool) -> TargetReport:
     if path.is_dir():
         report.kind = "directory"
         inspect_directory(path, report)
-    else:
+    elif path.is_file():
         report.kind = "file"
-        report.size = path.stat().st_size
-        report.sha256 = sha256_file(path)
-        if path.suffix.lower() in ARCHIVE_EXTENSIONS:
-            report.kind = "archive"
-            inspect_zip(path, report)
-        else:
-            inspect_regular_file(path, report)
+        try:
+            report.size = path.stat().st_size
+            report.sha256 = sha256_file(path)
+            if path.suffix.lower() in ARCHIVE_EXTENSIONS:
+                report.kind = "archive"
+                inspect_zip(path, report)
+            else:
+                inspect_regular_file(path, report)
+        except OSError:
+            report.findings.append(Finding("REVIEW", str(path), "file inspection incomplete",
+                                           "Could not read the input file."))
+    else:
+        report.findings.append(Finding("REVIEW", str(path), "unsupported target type"))
+        return report
 
     if defender:
         run_defender(path, report)
@@ -345,7 +362,7 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Skip Microsoft Defender scan even when available",
     )
-    parser.add_argument("--json", help="Write JSON report to this path")
+    parser.add_argument("--json", help="Create a new private JSON report; existing paths are refused")
     args = parser.parse_args(argv)
 
     reports = [scan_target(Path(t), defender=not args.no_defender) for t in args.targets]
@@ -353,7 +370,14 @@ def main(argv: list[str] | None = None) -> int:
         print_report(report)
 
     if args.json:
-        Path(args.json).write_text(json.dumps(json_ready(reports), indent=2), encoding="utf-8")
+        try:
+            flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0)
+            descriptor = os.open(args.json, flags, 0o600)
+            with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+                handle.write(json.dumps(json_ready(reports), indent=2) + "\n")
+        except OSError as error:
+            print(f"Report could not be written: {error}", file=sys.stderr)
+            return 1
         print(f"\nJSON report written: {args.json}")
 
     return 2 if any(r.verdict == "STOP" for r in reports) else 1 if any(r.verdict == "REVIEW" for r in reports) else 0
